@@ -24,3 +24,5 @@ Open the notebook in Google Colab and run cells sequentially.
 
 ## Skills
 NGS · GATK4 · Python · R · Bash · Bioinformatics
+
+![NGS Pipeline](https://github.com/user-attachments/assets/f433ce07-1e97-4f38-a3c1-34a4e1ecc32a)
