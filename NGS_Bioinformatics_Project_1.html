@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGS Data Analysis – M.Sc Bioinformatics Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2234;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --glow: rgba(0,212,255,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 20% 10%, rgba(0,212,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 80% 80%, rgba(124,58,237,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 60% 30%, rgba(16,185,129,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 50%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 680px;
+    margin-bottom: 2rem;
+    font-style: italic;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .meta-value {
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ===== TOC ===== */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin: 2.5rem 0;
+  }
+
+  .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.4rem;
+  }
+
+  .toc-list li a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .toc-list li a:hover { color: var(--accent); }
+  .toc-list li a::before {
+    content: attr(data-num);
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    min-width: 1.5rem;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    padding: 3.5rem 0;
+    border-bottom: 1px solid rgba(30,58,95,0.5);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 0.3rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .section-title span {
+    color: var(--accent);
+  }
+
+  /* ===== CARDS ===== */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin: 1.5rem 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .card p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ===== WORKFLOW ===== */
+  .workflow {
+    margin: 2rem 0;
+  }
+
+  .workflow-step {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .workflow-step::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 48px;
+    bottom: -24px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+
+  .workflow-step:last-child::before { display: none; }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    flex: 1;
+  }
+
+  .step-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .step-desc {
+    font-size: 0.87rem;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .step-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+
+  .tag-blue { color: var(--accent); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+  .tag-purple { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.06); }
+  .tag-green { color: var(--accent3); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
+  .tag-amber { color: var(--accent4); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
+  .tag-red { color: var(--accent5); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+
+  /* ===== CODE BLOCKS ===== */
+  .code-block {
+    background: #050810;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .code-header {
+    background: var(--surface2);
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .code-dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ef4444; }
+  .dot-y { background: #f59e0b; }
+  .dot-g { background: #10b981; }
+
+  .code-content {
+    padding: 1.4rem 1.6rem;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    line-height: 1.9;
+    color: #c9d1d9;
+  }
+
+  .c-comment { color: #6e7681; font-style: italic; }
+  .c-keyword { color: #ff7b72; }
+  .c-string { color: #a5d6ff; }
+  .c-func { color: #d2a8ff; }
+  .c-var { color: #79c0ff; }
+  .c-num { color: #f2cc60; }
+  .c-green { color: #56d364; }
+
+  /* ===== TOOLS TABLE ===== */
+  .tools-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+
+  .tools-table thead tr {
+    background: var(--surface2);
+  }
+
+  .tools-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    padding: 0.9rem 1.2rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .tools-table td {
+    padding: 0.85rem 1.2rem;
+    border-bottom: 1px solid rgba(30,58,95,0.4);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  .tools-table tr:hover td {
+    background: rgba(0,212,255,0.03);
+  }
+
+  .tool-name {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent3);
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+
+  /* ===== HIGHLIGHT BOXES ===== */
+  .highlight-box {
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin: 1.5rem 0;
+    border: 1px solid;
+  }
+
+  .hb-info {
+    background: rgba(0,212,255,0.05);
+    border-color: rgba(0,212,255,0.2);
+  }
+
+  .hb-warn {
+    background: rgba(245,158,11,0.05);
+    border-color: rgba(245,158,11,0.2);
+  }
+
+  .hb-success {
+    background: rgba(16,185,129,0.05);
+    border-color: rgba(16,185,129,0.2);
+  }
+
+  .hb-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+  }
+
+  .hb-info .hb-title { color: var(--accent); }
+  .hb-warn .hb-title { color: var(--accent4); }
+  .hb-success .hb-title { color: var(--accent3); }
+
+  .hb-content {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ===== PIPELINE DIAGRAM ===== */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 2rem 0;
+  }
+
+  .pipe-stage {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .pipe-connector {
+    display: flex;
+    justify-content: center;
+    padding: 0.3rem 0;
+  }
+
+  .pipe-connector::before {
+    content: '▼';
+    color: var(--border);
+    font-size: 0.8rem;
+  }
+
+  .pipe-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  .pipe-box:hover { border-color: var(--accent); }
+
+  .pipe-icon {
+    font-size: 1.5rem;
+    min-width: 2rem;
+    text-align: center;
+  }
+
+  .pipe-info {}
+  .pipe-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .pipe-detail {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  /* ===== RESULTS TABLE ===== */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .result-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ===== REFERENCES ===== */
+  .ref-list {
+    list-style: none;
+    counter-reset: ref;
+  }
+
+  .ref-list li {
+    counter-increment: ref;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 0.5rem 0 0.5rem 2.5rem;
+    position: relative;
+    border-bottom: 1px solid rgba(30,58,95,0.3);
+  }
+
+  .ref-list li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  ul.detail-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+
+  ul.detail-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(30,58,95,0.3);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  ul.detail-list li::before {
+    content: '→';
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  p.body-text {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 1rem;
+    line-height: 1.9;
+  }
+
+  h3.sub-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: #fff;
+    margin: 1.5rem 0 0.7rem;
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2rem; }
+    .card-grid { grid-template-columns: 1fr; }
+    .tools-table { font-size: 0.78rem; }
+    .code-content { font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">M.Sc Bioinformatics Project · 2025</div>
+    <h1>Next-Generation Sequencing<br>Data Analysis</h1>
+    <p class="hero-subtitle">A comprehensive study of variant calling pipeline — from raw FASTQ reads to clinical-grade annotated VCF, with complete methodology, tools, and Python/R implementation.</p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Level</span>
+        <span class="meta-value">M.Sc / M.Tech Bioinformatics</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Domain</span>
+        <span class="meta-value">Genomics · NGS · Variant Analysis</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Duration</span>
+        <span class="meta-value">3–4 Months</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Languages</span>
+        <span class="meta-value">Python · R · Bash</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">📋 Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#intro" data-num="01">Introduction & Objectives</a></li>
+      <li><a href="#theory" data-num="02">Theory & Background</a></li>
+      <li><a href="#ngs-types" data-num="03">Types of NGS</a></li>
+      <li><a href="#workflow" data-num="04">Project Workflow</a></li>
+      <li><a href="#pipeline" data-num="05">Bioinformatics Pipeline</a></li>
+      <li><a href="#tools" data-num="06">Tools & Software</a></li>
+      <li><a href="#code-bash" data-num="07">Bash Pipeline Code</a></li>
+      <li><a href="#code-python" data-num="08">Python QC Code</a></li>
+      <li><a href="#code-r" data-num="09">R Visualization Code</a></li>
+      <li><a href="#results" data-num="10">Expected Results</a></li>
+      <li><a href="#applications" data-num="11">Applications</a></li>
+      <li><a href="#references" data-num="12">References</a></li>
+    </ul>
+  </div>
+
+  <!-- ===== SECTION 1: INTRODUCTION ===== -->
+  <div class="section" id="intro">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2 class="section-title">Introduction <span>&</span> Objectives</h2>
+    </div>
+
+    <p class="body-text">Next-Generation Sequencing (NGS) ek revolutionary technology hai jo ek saath millions of DNA fragments ko parallel mein sequence karti hai. Ye technology traditional Sanger sequencing ki jagah le chuki hai aur aaj cancer genomics, rare diseases, pharmacogenomics, aur infectious disease diagnostics ka backbone ban chuki hai.</p>
+
+    <p class="body-text">Is project mein hum ek <strong style="color:#fff">Whole Exome Sequencing (WES) variant calling pipeline</strong> implement karenge — raw reads se lekar clinically annotated variants tak — using industry-standard tools jaise GATK4, BWA-MEM2, Trimmomatic, FastQC, and SnpEff.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Primary Objective</div>
+        <p>Raw FASTQ files se high-quality SNPs aur Indels ko identify karna aur annotate karna using GATK4 Best Practices pipeline.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔬</div>
+        <div class="card-title">Scientific Goal</div>
+        <p>Disease-associated variants ko discover karna aur unhe ClinVar, dbSNP, aur OMIM databases ke through clinical significance assign karna.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💻</div>
+        <div class="card-title">Technical Goal</div>
+        <p>End-to-end automated bioinformatics pipeline develop karna Python/Bash mein jo reproducible aur scalable ho.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Analytical Goal</div>
+        <p>R-based visualization aur statistical analysis se variant landscape ko interpret karna aur publication-ready plots banana.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: THEORY ===== -->
+  <div class="section" id="theory">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2 class="section-title">Theory <span>&</span> Background</h2>
+    </div>
+
+    <h3 class="sub-heading">2.1 DNA Sequencing — Brief History</h3>
+    <p class="body-text">1977 mein Frederick Sanger ne chain-termination method develop ki — "First Generation Sequencing". Ye method accurate thi lekin slow aur expensive. Human Genome Project (1990–2003) mein $3 billion aur 13 saal lage poore genome ko sequence karne mein. Aaj NGS se ek human genome sirf $300–600 mein 2–3 din mein sequence ho jaata hai.</p>
+
+    <h3 class="sub-heading">2.2 NGS Kaise Kaam Karta Hai?</h3>
+    <div class="workflow">
+      <div class="pipe-stage">
+        <div class="pipe-box">
+          <div class="pipe-icon">🧬</div>
+          <div class="pipe-info">
+            <div class="pipe-name" style="color:var(--accent)">Step 1: Library Preparation</div>
+            <div class="pipe-detail">DNA extract → Fragment (150–300 bp) → Adapters ligate → PCR amplify</div>
+          </div>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-stage">
+        <div class="pipe-box">
+          <div class="pipe-icon">🔄</div>
+          <div class="pipe-info">
+            <div class="pipe-name" style="color:var(--accent2)">Step 2: Cluster Generation</div>
+            <div class="pipe-detail">DNA fragments flow cell pe bind → Bridge amplification → Clusters form (identical copies)</div>
+          </div>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-stage">
+        <div class="pipe-box">
+          <div class="pipe-icon">📸</div>
+          <div class="pipe-info">
+            <div class="pipe-name" style="color:var(--accent3)">Step 3: Sequencing by Synthesis</div>
+            <div class="pipe-detail">Fluorescent dNTPs → Laser imaging → Base-by-base read → FASTQ output (quality scores)</div>
+          </div>
+        </div>
+      </div>
+      <div class="pipe-connector"></div>
+      <div class="pipe-stage">
+        <div class="pipe-box">
+          <div class="pipe-icon">💻</div>
+          <div class="pipe-info">
+            <div class="pipe-name" style="color:var(--accent4)">Step 4: Data Analysis</div>
+            <div class="pipe-detail">QC → Alignment → Variant Calling → Annotation → Interpretation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sub-heading">2.3 Key Concepts</h3>
+    <ul class="detail-list">
+      <li><strong style="color:#fff">Read Depth / Coverage:</strong> Har genomic position kitni baar sequence hua. WES mein minimum 20–30x, ideally 100x. Zyada coverage = zyada accurate variant calling.</li>
+      <li><strong style="color:#fff">FASTQ Format:</strong> Raw sequencing output. Har read ke 4 lines: ID, Sequence, '+', Quality scores (Phred scale). Q30 = 99.9% accuracy.</li>
+      <li><strong style="color:#fff">SAM/BAM Format:</strong> Aligned reads ka format. SAM = text, BAM = binary compressed. CIGAR string alignment describe karti hai.</li>
+      <li><strong style="color:#fff">VCF Format:</strong> Variant Call Format. CHROM, POS, REF, ALT, QUAL, FILTER, INFO fields. Standard output of variant callers.</li>
+      <li><strong style="color:#fff">SNP vs Indel:</strong> SNP = single nucleotide polymorphism (substitution). Indel = insertion/deletion. Frameshift indels protein function disrupt karte hain.</li>
+      <li><strong style="color:#fff">Variant Filtration (VQSR):</strong> GATK ka Variant Quality Score Recalibration — machine learning se true variants ko false positives se distinguish karta hai.</li>
+      <li><strong style="color:#fff">Phred Quality Score:</strong> Q = -10 × log₁₀(P). Q20 = 99% accuracy; Q30 = 99.9%; Q40 = 99.99%. Standard threshold = Q30.</li>
+    </ul>
+  </div>
+
+  <!-- ===== SECTION 3: NGS TYPES ===== -->
+  <div class="section" id="ngs-types">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2 class="section-title">Types <span>of</span> NGS</h2>
+    </div>
+
+    <table class="tools-table">
+      <thead>
+        <tr>
+          <th>NGS Type</th>
+          <th>Target</th>
+          <th>Use Case</th>
+          <th>Cost (Approx.)</th>
+          <th>Our Project</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tool-name">WGS</span><br><small style="color:var(--text-dim)">Whole Genome Seq</small></td>
+          <td>Entire genome (~3.2Gb)</td>
+          <td>Structural variants, CNVs, rare diseases</td>
+          <td>$300–600</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">WES ✓</span><br><small style="color:var(--text-dim)">Whole Exome Seq</small></td>
+          <td>Exons only (~1–2% genome)</td>
+          <td>Coding variants, disease mutations</td>
+          <td>$100–200</td>
+          <td style="color:var(--accent3)">✅ This Project</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">RNA-Seq</span></td>
+          <td>Transcriptome</td>
+          <td>Gene expression, splicing, fusion genes</td>
+          <td>$150–300</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">ChIP-Seq</span></td>
+          <td>Protein-DNA interaction</td>
+          <td>Transcription factor binding, histone marks</td>
+          <td>$200–400</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">ATAC-Seq</span></td>
+          <td>Open chromatin</td>
+          <td>Regulatory regions, enhancers</td>
+          <td>$150–250</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">16S rRNA-Seq</span></td>
+          <td>Microbial communities</td>
+          <td>Microbiome analysis, gut flora</td>
+          <td>$50–100</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 4: WORKFLOW ===== -->
+  <div class="section" id="workflow">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2 class="section-title">Project <span>Workflow</span></h2>
+    </div>
+
+    <p class="body-text">Yeh project <strong style="color:#fff">GATK4 Best Practices</strong> pipeline follow karta hai — jo Broad Institute (MIT/Harvard) ka officially recommended approach hai clinical variant calling ke liye.</p>
+
+    <div class="workflow">
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(0,212,255,0.1); border:2px solid var(--accent); color:var(--accent)">01</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent)">🔽 Data Acquisition</div>
+          <div class="step-desc">NCBI SRA (Sequence Read Archive) se public WES data download karna. Sample: NA12878 (Illumina Platinum Genome — gold standard). Tools: SRA Toolkit, wget.</div>
+          <div class="step-tags">
+            <span class="tag tag-blue">FASTQ Download</span>
+            <span class="tag tag-blue">SRA Toolkit</span>
+            <span class="tag tag-green">~50GB raw data</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(124,58,237,0.1); border:2px solid var(--accent2); color:var(--accent2)">02</div>
+        <div class="step-body">
+          <div class="step-title" style="color:#a78bfa)">🔍 Quality Control (QC)</div>
+          <div class="step-desc">Raw FASTQ reads ki quality assess karna. Per-base quality, GC content, adapter contamination, duplication rate check. FastQC HTML reports generate karna.</div>
+          <div class="step-tags">
+            <span class="tag tag-purple">FastQC</span>
+            <span class="tag tag-purple">MultiQC</span>
+            <span class="tag tag-blue">Phred Q≥30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(16,185,129,0.1); border:2px solid var(--accent3); color:var(--accent3)">03</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent3)">✂️ Read Trimming & Preprocessing</div>
+          <div class="step-desc">Low-quality bases (Q&lt;20) trim karna, adapter sequences remove karna, short reads (&lt;36bp) discard karna. Trimmomatic ya Fastp use karna.</div>
+          <div class="step-tags">
+            <span class="tag tag-green">Trimmomatic</span>
+            <span class="tag tag-green">Fastp</span>
+            <span class="tag tag-amber">ILLUMINACLIP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(245,158,11,0.1); border:2px solid var(--accent4); color:var(--accent4)">04</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent4)">🗺️ Alignment to Reference Genome</div>
+          <div class="step-desc">Clean reads ko human reference genome (hg38/GRCh38) ke saath align karna. BWA-MEM2 use karna paired-end alignment ke liye. Read Groups add karna GATK compatibility ke liye.</div>
+          <div class="step-tags">
+            <span class="tag tag-amber">BWA-MEM2</span>
+            <span class="tag tag-amber">hg38 Reference</span>
+            <span class="tag tag-blue">SAM output</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(239,68,68,0.1); border:2px solid var(--accent5); color:var(--accent5)">05</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent5)">⚙️ BAM Processing</div>
+          <div class="step-desc">SAM → BAM convert (Samtools). Sort by coordinate. Mark duplicates (Picard). Base Quality Score Recalibration (BQSR) — systematic errors correct karna. Index karna.</div>
+          <div class="step-tags">
+            <span class="tag tag-red">Samtools</span>
+            <span class="tag tag-red">Picard</span>
+            <span class="tag tag-red">GATK BQSR</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(0,212,255,0.1); border:2px solid var(--accent); color:var(--accent)">06</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent)">🧪 Variant Calling</div>
+          <div class="step-desc">GATK HaplotypeCaller se per-sample GVCF generate karna. GenotypeGVCFs se joint genotyping. SNPs aur Indels alag-alag filter karna (VQSR ya Hard Filtering).</div>
+          <div class="step-tags">
+            <span class="tag tag-blue">GATK HaplotypeCaller</span>
+            <span class="tag tag-blue">GVCF mode</span>
+            <span class="tag tag-green">VCF output</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(124,58,237,0.1); border:2px solid var(--accent2); color:var(--accent2)">07</div>
+        <div class="step-body">
+          <div class="step-title" style="color:#a78bfa">🏷️ Variant Annotation</div>
+          <div class="step-desc">Variants ko biological significance assign karna. Gene name, function, disease association, allele frequency, SIFT/PolyPhen-2 pathogenicity scores add karna.</div>
+          <div class="step-tags">
+            <span class="tag tag-purple">SnpEff</span>
+            <span class="tag tag-purple">ANNOVAR</span>
+            <span class="tag tag-purple">VEP</span>
+            <span class="tag tag-blue">ClinVar / dbSNP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-num" style="background:rgba(16,185,129,0.1); border:2px solid var(--accent3); color:var(--accent3)">08</div>
+        <div class="step-body">
+          <div class="step-title" style="color:var(--accent3)">📊 Visualization & Reporting</div>
+          <div class="step-desc">R/Python se variant statistics visualize karna: variant type distribution, Ti/Tv ratio, coverage plots, pathogenicity pie charts. Final HTML/PDF report generate karna.</div>
+          <div class="step-tags">
+            <span class="tag tag-green">R · ggplot2</span>
+            <span class="tag tag-green">Python · matplotlib</span>
+            <span class="tag tag-amber">IGV Browser</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== SECTION 5: PIPELINE ===== -->
+  <div class="section" id="pipeline">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2 class="section-title">Bioinformatics <span>Pipeline</span></h2>
+    </div>
+
+    <div class="highlight-box hb-info">
+      <div class="hb-title">🔬 Pipeline: GATK4 Best Practices (WES Variant Calling)</div>
+      <div class="hb-content">
+        FASTQ (Raw Reads) → QC (FastQC) → Trimming (Trimmomatic) → Alignment (BWA-MEM2 + hg38) → Sort & Index (Samtools) → Mark Duplicates (Picard) → BQSR (GATK) → Variant Calling (HaplotypeCaller) → Genotyping (GenotypeGVCFs) → Filtering (VQSR) → Annotation (SnpEff/VEP) → Visualization (R/Python) → Clinical Report
+      </div>
+    </div>
+
+    <div class="highlight-box hb-warn">
+      <div class="hb-title">⚠️ Important: Reference Genome</div>
+      <div class="hb-content">
+        hg38 (GRCh38) use karna recommended hai — ye latest human reference genome hai. hg19 older hai lekin aaj bhi kaafi published datasets mein use hota hai. Liftover tools se hg19 → hg38 conversion possible hai. Project mein consistently ek hi version use karna zaroori hai.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 6: TOOLS ===== -->
+  <div class="section" id="tools">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2 class="section-title">Tools <span>&</span> Software</h2>
+    </div>
+
+    <table class="tools-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Version</th>
+          <th>Purpose</th>
+          <th>Installation</th>
+          <th>Language</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tool-name">FastQC</span></td>
+          <td>v0.12.1</td>
+          <td>Raw read quality assessment, HTML reports</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install fastqc</code></td>
+          <td>Java</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">MultiQC</span></td>
+          <td>v1.21</td>
+          <td>Multiple FastQC reports aggregate karna</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">pip install multiqc</code></td>
+          <td>Python</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">Trimmomatic</span></td>
+          <td>v0.39</td>
+          <td>Adapter trimming, quality filtering</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install trimmomatic</code></td>
+          <td>Java</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">BWA-MEM2</span></td>
+          <td>v2.2.1</td>
+          <td>Short read alignment to reference genome</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install bwa-mem2</code></td>
+          <td>C++</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">Samtools</span></td>
+          <td>v1.19</td>
+          <td>SAM/BAM manipulation, sort, index, stats</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install samtools</code></td>
+          <td>C</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">Picard</span></td>
+          <td>v3.1</td>
+          <td>Mark PCR duplicates, metrics collection</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install picard</code></td>
+          <td>Java</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">GATK4</span></td>
+          <td>v4.5.0</td>
+          <td>BQSR, HaplotypeCaller, VQSR, genotyping</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install gatk4</code></td>
+          <td>Java/Python</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">SnpEff</span></td>
+          <td>v5.2</td>
+          <td>Variant annotation, functional effect prediction</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install snpeff</code></td>
+          <td>Java</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">VEP</span></td>
+          <td>v112</td>
+          <td>Ensembl variant effect predictor, ClinVar</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">conda install ensembl-vep</code></td>
+          <td>Perl</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">IGV</span></td>
+          <td>v2.17</td>
+          <td>Interactive variant visualization in genome browser</td>
+          <td>Download from igv.org</td>
+          <td>Java</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">R + ggplot2</span></td>
+          <td>R 4.3+</td>
+          <td>Statistical analysis, publication plots</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">install.packages("ggplot2")</code></td>
+          <td>R</td>
+        </tr>
+        <tr>
+          <td><span class="tool-name">Python + pandas</span></td>
+          <td>Python 3.11+</td>
+          <td>VCF parsing, automation, data manipulation</td>
+          <td><code style="color:var(--accent4); font-family:JetBrains Mono; font-size:0.78rem">pip install pandas pysam</code></td>
+          <td>Python</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box hb-success">
+      <div class="hb-title">✅ Environment Setup (Recommended)</div>
+      <div class="hb-content">
+        Sab tools ko ek Conda environment mein install karna best practice hai: <strong style="color:#fff">conda create -n ngs_pipeline python=3.11 && conda activate ngs_pipeline</strong> — phir sab tools install karo. Ye version conflicts avoid karta hai aur reproducibility ensure karta hai. Alternatively, Docker/Singularity containers use kar sakte ho HPC clusters ke liye.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 7: BASH CODE ===== -->
+  <div class="section" id="code-bash">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2 class="section-title">Bash Pipeline <span>Code</span></h2>
+    </div>
+
+    <p class="body-text">Niche complete automated Bash pipeline script hai jo FASTQ se annotated VCF tak ka poora workflow automate karta hai:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">bash · ngs_pipeline.sh</span>
+        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      </div>
+      <div class="code-content"><pre><span class="c-comment">#!/bin/bash
+# ================================================================
+# NGS Variant Calling Pipeline — M.Sc Bioinformatics Project
+# Author: [Your Name] | Institution: [Your University]
+# Reference: GATK4 Best Practices (hg38)
+# ================================================================</span>
+
+<span class="c-comment"># ---------- CONFIGURATION ----------</span>
+<span class="c-var">SAMPLE</span>=<span class="c-string">"NA12878"</span>
+<span class="c-var">THREADS</span>=<span class="c-num">8</span>
+<span class="c-var">REF</span>=<span class="c-string">"/data/reference/hg38.fa"</span>
+<span class="c-var">KNOWN_SITES</span>=<span class="c-string">"/data/reference/dbsnp_146.hg38.vcf.gz"</span>
+<span class="c-var">MILLS</span>=<span class="c-string">"/data/reference/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"</span>
+<span class="c-var">R1</span>=<span class="c-string">"${SAMPLE}_R1.fastq.gz"</span>
+<span class="c-var">R2</span>=<span class="c-string">"${SAMPLE}_R2.fastq.gz"</span>
+<span class="c-var">OUTDIR</span>=<span class="c-string">"./results/${SAMPLE}"</span>
+
+<span class="c-func">mkdir</span> -p <span class="c-var">$OUTDIR</span>/{qc,aligned,variants,annotated}
+
+<span class="c-comment"># ===== STEP 1: QUALITY CONTROL =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 1] Running FastQC..."</span>
+<span class="c-func">fastqc</span> -t <span class="c-var">$THREADS</span> -o <span class="c-var">$OUTDIR</span>/qc <span class="c-var">$R1</span> <span class="c-var">$R2</span>
+<span class="c-func">multiqc</span> <span class="c-var">$OUTDIR</span>/qc -o <span class="c-var">$OUTDIR</span>/qc/multiqc_report
+
+<span class="c-comment"># ===== STEP 2: TRIMMING =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 2] Trimming adapters with Trimmomatic..."</span>
+<span class="c-func">trimmomatic</span> PE -threads <span class="c-var">$THREADS</span> -phred33 \
+  <span class="c-var">$R1</span> <span class="c-var">$R2</span> \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R1_trimmed.fq.gz \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R1_unpaired.fq.gz \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R2_trimmed.fq.gz \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R2_unpaired.fq.gz \
+  ILLUMINACLIP:TruSeq3-PE.fa:<span class="c-num">2</span>:<span class="c-num">30</span>:<span class="c-num">10</span> LEADING:<span class="c-num">3</span> TRAILING:<span class="c-num">3</span> \
+  SLIDINGWINDOW:<span class="c-num">4</span>:<span class="c-num">15</span> MINLEN:<span class="c-num">36</span>
+
+<span class="c-comment"># ===== STEP 3: ALIGNMENT =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 3] Aligning with BWA-MEM2..."</span>
+<span class="c-func">bwa-mem2</span> mem -t <span class="c-var">$THREADS</span> \
+  -R <span class="c-string">"@RG\tID:${SAMPLE}\tSM:${SAMPLE}\tPL:ILLUMINA\tLB:lib1\tPU:unit1"</span> \
+  <span class="c-var">$REF</span> \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R1_trimmed.fq.gz \
+  <span class="c-var">$OUTDIR</span>/qc/<span class="c-var">${SAMPLE}</span>_R2_trimmed.fq.gz \
+  | <span class="c-func">samtools</span> sort -@ <span class="c-var">$THREADS</span> -o <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_sorted.bam
+<span class="c-func">samtools</span> index <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_sorted.bam
+
+<span class="c-comment"># ===== STEP 4: MARK DUPLICATES =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 4] Marking duplicates with Picard..."</span>
+<span class="c-func">picard</span> MarkDuplicates \
+  I=<span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_sorted.bam \
+  O=<span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_dedup.bam \
+  M=<span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_dup_metrics.txt \
+  REMOVE_DUPLICATES=false VALIDATION_STRINGENCY=SILENT
+<span class="c-func">samtools</span> index <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_dedup.bam
+
+<span class="c-comment"># ===== STEP 5: BASE QUALITY SCORE RECALIBRATION (BQSR) =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 5] Running GATK BQSR..."</span>
+<span class="c-func">gatk</span> BaseRecalibrator \
+  -I <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_dedup.bam \
+  -R <span class="c-var">$REF</span> \
+  --known-sites <span class="c-var">$KNOWN_SITES</span> \
+  --known-sites <span class="c-var">$MILLS</span> \
+  -O <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_recal.table
+
+<span class="c-func">gatk</span> ApplyBQSR \
+  -I <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_dedup.bam \
+  -R <span class="c-var">$REF</span> \
+  --bqsr-recal-file <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_recal.table \
+  -O <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_BQSR.bam
+
+<span class="c-comment"># ===== STEP 6: VARIANT CALLING =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 6] Calling variants with HaplotypeCaller..."</span>
+<span class="c-func">gatk</span> HaplotypeCaller \
+  -I <span class="c-var">$OUTDIR</span>/aligned/<span class="c-var">${SAMPLE}</span>_BQSR.bam \
+  -R <span class="c-var">$REF</span> \
+  -O <span class="c-var">$OUTDIR</span>/variants/<span class="c-var">${SAMPLE}</span>.g.vcf.gz \
+  -ERC GVCF \
+  --dbsnp <span class="c-var">$KNOWN_SITES</span>
+
+<span class="c-func">gatk</span> GenotypeGVCFs \
+  -R <span class="c-var">$REF</span> \
+  -V <span class="c-var">$OUTDIR</span>/variants/<span class="c-var">${SAMPLE}</span>.g.vcf.gz \
+  -O <span class="c-var">$OUTDIR</span>/variants/<span class="c-var">${SAMPLE}</span>_raw.vcf.gz
+
+<span class="c-comment"># ===== STEP 7: VARIANT FILTRATION (Hard Filtering for single sample) =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 7] Filtering variants..."</span>
+
+<span class="c-comment"># SNP Filtration</span>
+<span class="c-func">gatk</span> SelectVariants -R <span class="c-var">$REF</span> -V <span class="c-var">$OUTDIR</span>/variants/<span class="c-var">${SAMPLE}</span>_raw.vcf.gz \
+  --select-type-to-include SNP -O <span class="c-var">$OUTDIR</span>/variants/snps_raw.vcf.gz
+
+<span class="c-func">gatk</span> VariantFiltration -R <span class="c-var">$REF</span> -V <span class="c-var">$OUTDIR</span>/variants/snps_raw.vcf.gz \
+  --filter-expression <span class="c-string">"QD < 2.0"</span> --filter-name <span class="c-string">"QD2"</span> \
+  --filter-expression <span class="c-string">"FS > 60.0"</span> --filter-name <span class="c-string">"FS60"</span> \
+  --filter-expression <span class="c-string">"MQ < 40.0"</span> --filter-name <span class="c-string">"MQ40"</span> \
+  -O <span class="c-var">$OUTDIR</span>/variants/snps_filtered.vcf.gz
+
+<span class="c-comment"># ===== STEP 8: ANNOTATION =====</span>
+<span class="c-green">echo</span> <span class="c-string">"[STEP 8] Annotating variants with SnpEff..."</span>
+<span class="c-func">snpEff</span> ann -v GRCh38.99 \
+  <span class="c-var">$OUTDIR</span>/variants/snps_filtered.vcf.gz \
+  > <span class="c-var">$OUTDIR</span>/annotated/<span class="c-var">${SAMPLE}</span>_annotated.vcf
+
+<span class="c-green">echo</span> <span class="c-string">"✅ Pipeline Complete! Results in: ${OUTDIR}"</span></pre></div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 8: PYTHON CODE ===== -->
+  <div class="section" id="code-python">
+    <div class="section-header">
+      <span class="section-number">08</span>
+      <h2 class="section-title">Python QC <span>&</span> VCF Analysis</h2>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">python · vcf_analysis.py</span>
+        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      </div>
+      <div class="code-content"><pre><span class="c-comment">"""
+NGS VCF Analysis & Quality Metrics — Python Script
+M.Sc Bioinformatics Project
+"""</span>
+
+<span class="c-keyword">import</span> <span class="c-var">pandas</span> <span class="c-keyword">as</span> <span class="c-var">pd</span>
+<span class="c-keyword">import</span> <span class="c-var">numpy</span> <span class="c-keyword">as</span> <span class="c-var">np</span>
+<span class="c-keyword">import</span> <span class="c-var">matplotlib.pyplot</span> <span class="c-keyword">as</span> <span class="c-var">plt</span>
+<span class="c-keyword">import</span> <span class="c-var">seaborn</span> <span class="c-keyword">as</span> <span class="c-var">sns</span>
+<span class="c-keyword">import</span> <span class="c-var">gzip</span>, <span class="c-var">re</span>
+<span class="c-keyword">from</span> <span class="c-var">collections</span> <span class="c-keyword">import</span> <span class="c-func">defaultdict</span>
+
+<span class="c-comment"># ============================================================
+# 1. VCF PARSER — Extract variant information
+# ============================================================</span>
+<span class="c-keyword">def</span> <span class="c-func">parse_vcf</span>(vcf_path):
+    <span class="c-string">"""Parse VCF file and return DataFrame with variant details."""</span>
+    records = []
+    opener = <span class="c-func">gzip.open</span> <span class="c-keyword">if</span> vcf_path.<span class="c-func">endswith</span>(<span class="c-string">'.gz'</span>) <span class="c-keyword">else</span> <span class="c-func">open</span>
+    
+    <span class="c-keyword">with</span> <span class="c-func">opener</span>(vcf_path, <span class="c-string">'rt'</span>) <span class="c-keyword">as</span> f:
+        <span class="c-keyword">for</span> line <span class="c-keyword">in</span> f:
+            <span class="c-keyword">if</span> line.<span class="c-func">startswith</span>(<span class="c-string">'#'</span>): <span class="c-keyword">continue</span>
+            cols = line.<span class="c-func">strip</span>().<span class="c-func">split</span>(<span class="c-string">'\t'</span>)
+            <span class="c-keyword">if</span> <span class="c-func">len</span>(cols) < <span class="c-num">8</span>: <span class="c-keyword">continue</span>
+            
+            chrom, pos, vid, ref, alt, qual, filt, info = cols[:<span class="c-num">8</span>]
+            
+            <span class="c-comment"># Determine variant type</span>
+            <span class="c-keyword">if</span> <span class="c-func">len</span>(ref) == <span class="c-func">len</span>(alt) == <span class="c-num">1</span>:
+                vtype = <span class="c-string">"SNP"</span>
+            <span class="c-keyword">elif</span> <span class="c-func">len</span>(ref) > <span class="c-func">len</span>(alt):
+                vtype = <span class="c-string">"Deletion"</span>
+            <span class="c-keyword">elif</span> <span class="c-func">len</span>(ref) < <span class="c-func">len</span>(alt):
+                vtype = <span class="c-string">"Insertion"</span>
+            <span class="c-keyword">else</span>:
+                vtype = <span class="c-string">"MNP"</span>
+            
+            <span class="c-comment"># Extract DP (depth) and AF from INFO field</span>
+            dp_match = <span class="c-var">re</span>.<span class="c-func">search</span>(<span class="c-string">r'DP=(\d+)'</span>, info)
+            af_match = <span class="c-var">re</span>.<span class="c-func">search</span>(<span class="c-string">r'AF=([\d.]+)'</span>, info)
+            depth = <span class="c-func">int</span>(dp_match.<span class="c-func">group</span>(<span class="c-num">1</span>)) <span class="c-keyword">if</span> dp_match <span class="c-keyword">else</span> <span class="c-num">None</span>
+            af = <span class="c-func">float</span>(af_match.<span class="c-func">group</span>(<span class="c-num">1</span>)) <span class="c-keyword">if</span> af_match <span class="c-keyword">else</span> <span class="c-num">None</span>
+            
+            records.<span class="c-func">append</span>({
+                <span class="c-string">'CHROM'</span>: chrom, <span class="c-string">'POS'</span>: <span class="c-func">int</span>(pos),
+                <span class="c-string">'REF'</span>: ref, <span class="c-string">'ALT'</span>: alt,
+                <span class="c-string">'QUAL'</span>: <span class="c-func">float</span>(qual) <span class="c-keyword">if</span> qual != <span class="c-string">'.'</span> <span class="c-keyword">else</span> <span class="c-num">None</span>,
+                <span class="c-string">'FILTER'</span>: filt, <span class="c-string">'TYPE'</span>: vtype,
+                <span class="c-string">'DEPTH'</span>: depth, <span class="c-string">'AF'</span>: af
+            })
+    
+    <span class="c-keyword">return</span> <span class="c-var">pd</span>.<span class="c-func">DataFrame</span>(records)
+
+<span class="c-comment"># ============================================================
+# 2. TRANSITION/TRANSVERSION (Ti/Tv) RATIO
+# ============================================================</span>
+<span class="c-keyword">def</span> <span class="c-func">calculate_titv</span>(df):
+    <span class="c-string">"""
+    Ti/Tv ratio: Quality metric for SNP calling accuracy.
+    Expected: WGS ~2.0, WES ~3.0-3.3, CpG sites ~4.0
+    """</span>
+    transitions = {<span class="c-string">'A'</span>:<span class="c-string">'G'</span>, <span class="c-string">'G'</span>:<span class="c-string">'A'</span>, <span class="c-string">'C'</span>:<span class="c-string">'T'</span>, <span class="c-string">'T'</span>:<span class="c-string">'C'</span>}
+    snps = df[df[<span class="c-string">'TYPE'</span>] == <span class="c-string">'SNP'</span>].<span class="c-func">copy</span>()
+    
+    snps[<span class="c-string">'is_ti'</span>] = snps.<span class="c-func">apply</span>(
+        <span class="c-keyword">lambda</span> r: transitions.<span class="c-func">get</span>(r[<span class="c-string">'REF'</span>]) == r[<span class="c-string">'ALT'</span>], axis=<span class="c-num">1</span>
+    )
+    ti = snps[<span class="c-string">'is_ti'</span>].<span class="c-func">sum</span>()
+    tv = <span class="c-func">len</span>(snps) - ti
+    ratio = ti / tv <span class="c-keyword">if</span> tv > <span class="c-num">0</span> <span class="c-keyword">else</span> <span class="c-num">0</span>
+    
+    <span class="c-green">print</span>(<span class="c-string">f"  Transitions (Ti): {ti:,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"  Transversions (Tv): {tv:,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"  Ti/Tv Ratio: {ratio:.2f} (Expected WES: ~3.0)"</span>)
+    <span class="c-keyword">return</span> ratio
+
+<span class="c-comment"># ============================================================
+# 3. VARIANT STATISTICS SUMMARY
+# ============================================================</span>
+<span class="c-keyword">def</span> <span class="c-func">variant_summary</span>(df):
+    <span class="c-green">print</span>(<span class="c-string">"\n===== VARIANT SUMMARY ====="</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"Total Variants     : {len(df):,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"PASS Variants      : {(df['FILTER']=='PASS').sum():,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"SNPs               : {(df['TYPE']=='SNP').sum():,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"Insertions         : {(df['TYPE']=='Insertion').sum():,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"Deletions          : {(df['TYPE']=='Deletion').sum():,}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"Mean Quality Score : {df['QUAL'].mean():.1f}"</span>)
+    <span class="c-green">print</span>(<span class="c-string">f"Mean Read Depth    : {df['DEPTH'].mean():.1f}x"</span>)
+    <span class="c-green">print</span>(<span class="c-string">\n"Ti/Tv Analysis:"</span>)
+    <span class="c-func">calculate_titv</span>(df)
+
+<span class="c-comment"># ============================================================
+# 4. VISUALIZATION — Variant Distribution Plots
+# ============================================================</span>
+<span class="c-keyword">def</span> <span class="c-func">plot_variant_stats</span>(df, output_dir=<span class="c-string">"./plots"</span>):
+    <span class="c-var">plt</span>.style.<span class="c-func">use</span>(<span class="c-string">'dark_background'</span>)
+    fig, axes = <span class="c-var">plt</span>.<span class="c-func">subplots</span>(<span class="c-num">2</span>, <span class="c-num">2</span>, figsize=(<span class="c-num">14</span>, <span class="c-num">10</span>))
+    fig.<span class="c-func">suptitle</span>(<span class="c-string">'NGS Variant Analysis — NA12878 WES'</span>, fontsize=<span class="c-num">14</span>, color=<span class="c-string">'white'</span>)
+    
+    <span class="c-comment"># Plot 1: Variant Type Distribution</span>
+    type_counts = df[<span class="c-string">'TYPE'</span>].<span class="c-func">value_counts</span>()
+    axes[<span class="c-num">0</span>,<span class="c-num">0</span>].<span class="c-func">bar</span>(type_counts.index, type_counts.values,
+               color=[<span class="c-string">'#00d4ff'</span>,<span class="c-string">'#7c3aed'</span>,<span class="c-string">'#10b981'</span>,<span class="c-string">'#f59e0b'</span>])
+    axes[<span class="c-num">0</span>,<span class="c-num">0</span>].<span class="c-func">set_title</span>(<span class="c-string">'Variant Type Distribution'</span>)
+    axes[<span class="c-num">0</span>,<span class="c-num">0</span>].<span class="c-func">set_ylabel</span>(<span class="c-string">'Count'</span>)
+    
+    <span class="c-comment"># Plot 2: Quality Score Distribution</span>
+    axes[<span class="c-num">0</span>,<span class="c-num">1</span>].<span class="c-func">hist</span>(df[<span class="c-string">'QUAL'</span>].<span class="c-func">dropna</span>(), bins=<span class="c-num">50</span>, color=<span class="c-string">'#00d4ff'</span>, alpha=<span class="c-num">0.8</span>)
+    axes[<span class="c-num">0</span>,<span class="c-num">1</span>].<span class="c-func">set_title</span>(<span class="c-string">'Quality Score Distribution'</span>)
+    axes[<span class="c-num">0</span>,<span class="c-num">1</span>].<span class="c-func">set_xlabel</span>(<span class="c-string">'QUAL Score'</span>)
+    axes[<span class="c-num">0</span>,<span class="c-num">1</span>].<span class="c-func">axvline</span>(x=<span class="c-num">30</span>, color=<span class="c-string">'red'</span>, linestyle=<span class="c-string">'--'</span>, label=<span class="c-string">'Q30 threshold'</span>)
+    
+    <span class="c-comment"># Plot 3: Read Depth Histogram</span>
+    axes[<span class="c-num">1</span>,<span class="c-num">0</span>].<span class="c-func">hist</span>(df[<span class="c-string">'DEPTH'</span>].<span class="c-func">dropna</span>(), bins=<span class="c-num">50</span>, color=<span class="c-string">'#10b981'</span>, alpha=<span class="c-num">0.8</span>)
+    axes[<span class="c-num">1</span>,<span class="c-num">0</span>].<span class="c-func">set_title</span>(<span class="c-string">'Read Depth Distribution'</span>)
+    axes[<span class="c-num">1</span>,<span class="c-num">0</span>].<span class="c-func">set_xlabel</span>(<span class="c-string">'Depth (x)'</span>)
+    
+    <span class="c-comment"># Plot 4: Variants per Chromosome</span>
+    chrom_order = [<span class="c-string">f'chr{i}'</span> <span class="c-keyword">for</span> i <span class="c-keyword">in</span> <span class="c-func">list</span>(<span class="c-func">range</span>(<span class="c-num">1</span>,<span class="c-num">23</span>))+[<span class="c-string">'X'</span>,<span class="c-string">'Y'</span>]]
+    chrom_counts = df[<span class="c-string">'CHROM'</span>].<span class="c-func">value_counts</span>().<span class="c-func">reindex</span>(chrom_order, fill_value=<span class="c-num">0</span>)
+    axes[<span class="c-num">1</span>,<span class="c-num">1</span>].<span class="c-func">bar</span>(<span class="c-func">range</span>(<span class="c-func">len</span>(chrom_counts)), chrom_counts.values, color=<span class="c-string">'#f59e0b'</span>)
+    axes[<span class="c-num">1</span>,<span class="c-num">1</span>].<span class="c-func">set_title</span>(<span class="c-string">'Variant Count per Chromosome'</span>)
+    axes[<span class="c-num">1</span>,<span class="c-num">1</span>].<span class="c-func">set_xticks</span>(<span class="c-func">range</span>(<span class="c-func">len</span>(chrom_counts)))
+    axes[<span class="c-num">1</span>,<span class="c-num">1</span>].<span class="c-func">set_xticklabels</span>(chrom_counts.index, rotation=<span class="c-num">90</span>, fontsize=<span class="c-num">7</span>)
+    
+    <span class="c-var">plt</span>.<span class="c-func">tight_layout</span>()
+    <span class="c-var">plt</span>.<span class="c-func">savefig</span>(<span class="c-string">f"{output_dir}/variant_analysis.png"</span>, dpi=<span class="c-num">300</span>, bbox_inches=<span class="c-string">'tight'</span>)
+    <span class="c-green">print</span>(<span class="c-string">"✅ Plots saved!"</span>)
+
+<span class="c-comment"># ============================================================
+# MAIN
+# ============================================================</span>
+<span class="c-keyword">if</span> __name__ == <span class="c-string">"__main__"</span>:
+    df = <span class="c-func">parse_vcf</span>(<span class="c-string">"results/NA12878/annotated/NA12878_annotated.vcf"</span>)
+    <span class="c-func">variant_summary</span>(df)
+    <span class="c-func">plot_variant_stats</span>(df)</pre></div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 9: R CODE ===== -->
+  <div class="section" id="code-r">
+    <div class="section-header">
+      <span class="section-number">09</span>
+      <h2 class="section-title">R Visualization <span>Code</span></h2>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">r · variant_plots.R</span>
+        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+      </div>
+      <div class="code-content"><pre><span class="c-comment"># ================================================================
+# R Script: NGS Variant Visualization
+# M.Sc Bioinformatics Project | ggplot2-based analysis
+# ================================================================</span>
+
+<span class="c-func">library</span>(ggplot2)
+<span class="c-func">library</span>(dplyr)
+<span class="c-func">library</span>(tidyr)
+<span class="c-func">library</span>(vcfR)       <span class="c-comment"># VCF reading in R</span>
+<span class="c-func">library</span>(ggridges)   <span class="c-comment"># Ridge plots</span>
+<span class="c-func">library</span>(patchwork)  <span class="c-comment"># Multi-plot layout</span>
+
+<span class="c-comment"># ---------- 1. LOAD VCF DATA ----------</span>
+vcf <- <span class="c-func">read.vcfR</span>(<span class="c-string">"results/NA12878_annotated.vcf"</span>)
+vcf_df <- <span class="c-func">as.data.frame</span>(<span class="c-func">getFIX</span>(vcf))
+vcf_df$QUAL <- <span class="c-func">as.numeric</span>(vcf_df$QUAL)
+vcf_df$POS  <- <span class="c-func">as.numeric</span>(vcf_df$POS)
+
+<span class="c-comment"># Add variant type column</span>
+vcf_df <- vcf_df |>
+  <span class="c-func">mutate</span>(
+    VAR_TYPE = <span class="c-func">case_when</span>(
+      <span class="c-func">nchar</span>(REF) == <span class="c-num">1</span> & <span class="c-func">nchar</span>(ALT) == <span class="c-num">1</span> ~ <span class="c-string">"SNP"</span>,
+      <span class="c-func">nchar</span>(REF) > <span class="c-func">nchar</span>(ALT)  ~ <span class="c-string">"Deletion"</span>,
+      <span class="c-func">nchar</span>(REF) < <span class="c-func">nchar</span>(ALT)  ~ <span class="c-string">"Insertion"</span>,
+      TRUE ~ <span class="c-string">"MNP"</span>
+    )
+  )
+
+<span class="c-comment"># ---------- 2. PLOT 1: Variant Type Donut Chart ----------</span>
+type_summary <- vcf_df |>
+  <span class="c-func">count</span>(VAR_TYPE) |>
+  <span class="c-func">mutate</span>(pct = n / <span class="c-func">sum</span>(n) * <span class="c-num">100</span>)
+
+p1 <- <span class="c-func">ggplot</span>(type_summary, <span class="c-func">aes</span>(x=<span class="c-num">2</span>, y=pct, fill=VAR_TYPE)) +
+  <span class="c-func">geom_bar</span>(stat=<span class="c-string">"identity"</span>, width=<span class="c-num">1</span>) +
+  <span class="c-func">coord_polar</span>(<span class="c-string">"y"</span>, start=<span class="c-num">0</span>) +
+  <span class="c-func">xlim</span>(<span class="c-num">0.5</span>, <span class="c-num">2.5</span>) +  <span class="c-comment"># Donut effect</span>
+  <span class="c-func">scale_fill_manual</span>(values=<span class="c-func">c</span>(<span class="c-string">"#00d4ff"</span>,<span class="c-string">"#7c3aed"</span>,<span class="c-string">"#10b981"</span>,<span class="c-string">"#f59e0b"</span>)) +
+  <span class="c-func">labs</span>(title=<span class="c-string">"Variant Type Distribution"</span>, fill=<span class="c-string">"Type"</span>) +
+  <span class="c-func">theme_void</span>() +
+  <span class="c-func">theme</span>(plot.title=<span class="c-func">element_text</span>(face=<span class="c-string">"bold"</span>, hjust=<span class="c-num">0.5</span>))
+
+<span class="c-comment"># ---------- 3. PLOT 2: Coverage per Chromosome ----------</span>
+chrom_order <- <span class="c-func">paste0</span>(<span class="c-string">"chr"</span>, <span class="c-func">c</span>(<span class="c-num">1</span>:<span class="c-num">22</span>, <span class="c-string">"X"</span>, <span class="c-string">"Y"</span>))
+
+p2 <- vcf_df |>
+  <span class="c-func">filter</span>(CHROM %in% chrom_order) |>
+  <span class="c-func">mutate</span>(CHROM = <span class="c-func">factor</span>(CHROM, levels=chrom_order)) |>
+  <span class="c-func">ggplot</span>(<span class="c-func">aes</span>(x=CHROM)) +
+  <span class="c-func">geom_bar</span>(fill=<span class="c-string">"#00d4ff"</span>, alpha=<span class="c-num">0.8</span>) +
+  <span class="c-func">theme_minimal</span>() +
+  <span class="c-func">theme</span>(axis.text.x=<span class="c-func">element_text</span>(angle=<span class="c-num">90</span>, size=<span class="c-num">7</span>)) +
+  <span class="c-func">labs</span>(title=<span class="c-string">"Variant Count per Chromosome"</span>,
+       x=<span class="c-string">"Chromosome"</span>, y=<span class="c-string">"Variant Count"</span>)
+
+<span class="c-comment"># ---------- 4. PLOT 3: Quality Score Ridge Plot ----------</span>
+p3 <- vcf_df |>
+  <span class="c-func">filter</span>(!<span class="c-func">is.na</span>(QUAL), QUAL > <span class="c-num">0</span>) |>
+  <span class="c-func">ggplot</span>(<span class="c-func">aes</span>(x=QUAL, y=VAR_TYPE, fill=VAR_TYPE)) +
+  <span class="c-func">geom_density_ridges</span>(alpha=<span class="c-num">0.7</span>) +
+  <span class="c-func">scale_fill_manual</span>(values=<span class="c-func">c</span>(<span class="c-string">"#00d4ff"</span>,<span class="c-string">"#7c3aed"</span>,<span class="c-string">"#10b981"</span>,<span class="c-string">"#f59e0b"</span>)) +
+  <span class="c-func">theme_minimal</span>() +
+  <span class="c-func">labs</span>(title=<span class="c-string">"Quality Score by Variant Type"</span>,
+       x=<span class="c-string">"QUAL Score"</span>, y=<span class="c-string">""</span>) +
+  <span class="c-func">theme</span>(legend.position=<span class="c-string">"none"</span>)
+
+<span class="c-comment"># ---------- 5. COMBINE & SAVE ----------</span>
+combined_plot <- (p1 | p3) / p2 +
+  <span class="c-func">plot_annotation</span>(
+    title = <span class="c-string">"NGS Variant Analysis — NA12878 WES"</span>,
+    subtitle = <span class="c-string">"M.Sc Bioinformatics Project | GATK4 Pipeline"</span>,
+    theme = <span class="c-func">theme</span>(plot.title=<span class="c-func">element_text</span>(size=<span class="c-num">16</span>, face=<span class="c-string">"bold"</span>))
+  )
+
+<span class="c-func">ggsave</span>(<span class="c-string">"results/variant_report.pdf"</span>, combined_plot,
+       width=<span class="c-num">16</span>, height=<span class="c-num">10</span>, dpi=<span class="c-num">300</span>)
+
+<span class="c-func">cat</span>(<span class="c-string">"✅ R visualization saved to results/variant_report.pdf\n"</span>)</pre></div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 10: RESULTS ===== -->
+  <div class="section" id="results">
+    <div class="section-header">
+      <span class="section-number">10</span>
+      <h2 class="section-title">Expected <span>Results</span></h2>
+    </div>
+
+    <p class="body-text">NA12878 (Illumina Platinum Genome) standard benchmark sample ke liye expected output metrics:</p>
+
+    <div class="result-grid">
+      <div class="result-card">
+        <div class="result-num">~85,000</div>
+        <div class="result-label">Total SNPs Called</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">~12,000</div>
+        <div class="result-label">Total Indels Called</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">~3.2</div>
+        <div class="result-label">Ti/Tv Ratio (WES)</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">>95%</div>
+        <div class="result-label">PASS Filter Rate</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">100x</div>
+        <div class="result-label">Mean Coverage (WES)</div>
+      </div>
+      <div class="result-card">
+        <div class="result-num">~500</div>
+        <div class="result-label">Pathogenic Variants</div>
+      </div>
+    </div>
+
+    <h3 class="sub-heading">SnpEff Annotation Output Categories</h3>
+    <table class="tools-table">
+      <thead>
+        <tr>
+          <th>Annotation Category</th>
+          <th>Count (approx)</th>
+          <th>Clinical Significance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Synonymous (Silent)</td>
+          <td>~35,000 SNPs</td>
+          <td>Protein sequence change nahi — mostly benign</td>
+        </tr>
+        <tr>
+          <td>Missense (Nonsynonymous)</td>
+          <td>~28,000 SNPs</td>
+          <td>Amino acid change — SIFT/PolyPhen se pathogenicity assess</td>
+        </tr>
+        <tr>
+          <td>Nonsense (Stop-gain)</td>
+          <td>~400 SNPs</td>
+          <td>Premature stop codon — HIGH impact, likely pathogenic</td>
+        </tr>
+        <tr>
+          <td>Frameshift Indel</td>
+          <td>~800 indels</td>
+          <td>Reading frame disturb — protein loss of function</td>
+        </tr>
+        <tr>
+          <td>Splice Site Variants</td>
+          <td>~600 variants</td>
+          <td>mRNA splicing affect — exon skipping possible</td>
+        </tr>
+        <tr>
+          <td>Intron / Regulatory</td>
+          <td>~20,000</td>
+          <td>Gene expression regulation mein possible role</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 11: APPLICATIONS ===== -->
+  <div class="section" id="applications">
+    <div class="section-header">
+      <span class="section-number">11</span>
+      <h2 class="section-title">Real-World <span>Applications</span></h2>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🏥</div>
+        <div class="card-title">Clinical Diagnostics</div>
+        <p>Rare genetic disorders diagnose karna, BRCA1/2 mutations detect karna cancer risk assessment ke liye, pharmacogenomics-based drug dosing.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔬</div>
+        <div class="card-title">Cancer Genomics</div>
+        <p>Tumor vs normal WES se somatic mutations identify karna. Driver mutation vs passenger mutation classify karna. Tumor mutational burden (TMB) calculate karna.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💊</div>
+        <div class="card-title">Drug Development</div>
+        <p>Novel drug targets identify karna. Clinical trials mein patient stratification karna. Companion diagnostics develop karna.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧬</div>
+        <div class="card-title">Population Genomics</div>
+        <p>GWAS (Genome-Wide Association Studies) — disease-associated variants poulations mein find karna. Human evolution aur migration patterns study karna.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌍</div>
+        <div class="card-title">Infectious Disease</div>
+        <p>Viral/bacterial genome sequencing — COVID-19 variants track karna. Antibiotic resistance genes detect karna. Outbreak surveillance.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👶</div>
+        <div class="card-title">Prenatal Diagnosis</div>
+        <p>NIPT (Non-invasive prenatal testing) — cell-free DNA analysis. Chromosomal abnormalities detect karna (Trisomy 21, 18, 13).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 12: REFERENCES ===== -->
+  <div class="section" id="references">
+    <div class="section-header">
+      <span class="section-number">12</span>
+      <h2 class="section-title">References <span>&</span> Resources</h2>
+    </div>
+    <ol class="ref-list">
+      <li>Van der Auwera GA, O'Connor BD. <em>Genomics in the Cloud: Using Docker, GATK, and WDL in Terra</em>. O'Reilly Media, 2020.</li>
+      <li>DePristo MA et al. A framework for variation discovery and genotyping using next-generation DNA sequencing data. <em>Nature Genetics</em>, 2011; 43:491–498.</li>
+      <li>Li H, Durbin R. Fast and accurate short read alignment with Burrows-Wheeler Aligner. <em>Bioinformatics</em>, 2009; 25(14):1754–1760.</li>
+      <li>Cingolani P et al. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff. <em>Fly</em>, 2012; 6(2):80–92.</li>
+      <li>McLaren W et al. The Ensembl Variant Effect Predictor. <em>Genome Biology</em>, 2016; 17:122.</li>
+      <li>GATK Best Practices Documentation. Broad Institute. https://gatk.broadinstitute.org/hc/en-us/sections/360007226651</li>
+      <li>NCBI SRA — NA12878 dataset: SRR622461. https://www.ncbi.nlm.nih.gov/sra/SRR622461</li>
+      <li>GRCh38 Reference Genome. UCSC Genome Browser. https://genome.ucsc.edu</li>
+    </ol>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="container">
+    <p>NGS Data Analysis · M.Sc Bioinformatics Project · GATK4 Best Practices Pipeline · 2025</p>
+    <p style="margin-top:0.3rem; color:rgba(100,116,139,0.6)">For educational and research purposes · Reference: Broad Institute GATK Documentation</p>
+  </div>
+</div>
+
+</body>
+</html>
